@@ -1,0 +1,5149 @@
+openapi: 3.1.0
+info:
+  title: Trap.NZ API
+  description: API for Trap.NZ
+  version: development
+security:
+  - trap_auth:
+      - default
+tags:
+  - name: Organisations
+    description: A top-level organisation on Trap.NZ
+  - name: Projects
+    description: A top-level project on Trap.NZ
+  - name: Lines
+    description: A line on Trap.NZ
+  - name: Traps
+    description: Traps kill or catch pests
+  - name: Points of Interest
+    description: Points of interest record extra information within a project
+  - name: Sensors
+    description: Sensors and sensor records
+  - name: Auth
+    description: Endpoints related to auth
+  - name: Users
+    description: Endpoints related to users
+  - name: Deployment Markers
+    description: Endpoints related to deployment markers
+paths:
+  /organisations:
+    get:
+      summary: Get organisations
+      operationId: getOrganisations
+      tags:
+        - Organisations
+      parameters:
+        - $ref: '#/components/parameters/changedSince'
+        - $ref: '#/components/parameters/changedSinceUUID'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/organisationDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+  /organisations/{organisationUUID}:
+    get:
+      summary: Get organisation
+      operationId: getOrganisation
+      tags:
+        - Organisations
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/organisationDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    parameters:
+      - name: organisationUUID
+        in: path
+        required: true
+        schema:
+          title: Organisation UUID
+          type: string
+          format: uuid
+  /projects:
+    get:
+      summary: Get projects
+      operationId: getProjects
+      tags:
+        - Projects
+      parameters:
+        - $ref: '#/components/parameters/changedSince'
+        - $ref: '#/components/parameters/changedSinceUUID'
+        - $ref: '#/components/parameters/organisation'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/myMembershipState'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/projectDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+  /projects/{projectUUID}:
+    get:
+      summary: Get project
+      operationId: getProject
+      tags:
+        - Projects
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/projectDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    parameters:
+      - name: projectUUID
+        in: path
+        required: true
+        schema:
+          title: Project UUID
+          type: string
+          format: uuid
+  /lines:
+    get:
+      summary: Get lines
+      operationId: getLines
+      tags:
+        - Lines
+      parameters:
+        - $ref: '#/components/parameters/changedSince'
+        - $ref: '#/components/parameters/changedSinceUUID'
+        - $ref: '#/components/parameters/organisation'
+        - $ref: '#/components/parameters/limit'
+        - in: query
+          name: project
+          description: Only return entities associated with one or more projects.
+          schema:
+            oneOf:
+              - type: array
+                items:
+                  title: Project UUID
+                  type: string
+                  format: uuid
+              - type: string
+                format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lineDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    post:
+      summary: Create new line under a project
+      operationId: createLine
+      tags:
+        - Lines
+      requestBody:
+        description: Line to create for a project
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/lineRecordCreation'
+      responses:
+        '201':
+          $ref: '#/components/responses/lineSuccess'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '409':
+          $ref: '#/components/responses/conflict'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+  /lines/{lineUUID}:
+    get:
+      summary: Get line
+      operationId: getLine
+      tags:
+        - Lines
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/lineDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    patch:
+      summary: Update line
+      operationId: updateLine
+      tags:
+        - Lines
+      requestBody:
+        description: Line to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/lineRecordModification'
+      responses:
+        '200':
+          $ref: '#/components/responses/lineSuccess'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '409':
+          $ref: '#/components/responses/conflict'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+    delete:
+      summary: Delete line
+      operationId: deleteLine
+      tags:
+        - Lines
+      responses:
+        '200':
+          $ref: '#/components/responses/success'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '409':
+          $ref: '#/components/responses/conflict'
+    parameters:
+      - name: lineUUID
+        in: path
+        required: true
+        schema:
+          title: Line UUID
+          type: string
+          format: uuid
+  /traps:
+    get:
+      summary: Get traps
+      description: Get traps, ordered from least recently changed to most recently changed.
+      operationId: getTraps
+      tags:
+        - Traps
+      parameters:
+        - $ref: '#/components/parameters/changedSince'
+        - $ref: '#/components/parameters/changedSinceUUID'
+        - $ref: '#/components/parameters/organisation'
+        - $ref: '#/components/parameters/project'
+        - $ref: '#/components/parameters/line'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/trapDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    post:
+      summary: Create trap
+      description: Create a new trap
+      operationId: createTrap
+      tags:
+        - Traps
+      parameters:
+        - $ref: '#/components/parameters/appVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/trapCreation'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/trapDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '409':
+          $ref: '#/components/responses/conflict'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+  /trapRecords:
+    get:
+      summary: Get records
+      description: >-
+        Get records, ordered from least recently changed to most recently
+        changed.
+      operationId: getTrapRecords
+      tags:
+        - Traps
+      parameters:
+        - $ref: '#/components/parameters/changedSince'
+        - $ref: '#/components/parameters/changedSinceUUID'
+        - $ref: '#/components/parameters/organisation'
+        - $ref: '#/components/parameters/project'
+        - $ref: '#/components/parameters/line'
+        - $ref: '#/components/parameters/limit'
+        - in: query
+          name: trap
+          description: Only return records associated with this trap.
+          schema:
+            title: Trap UUID
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/recordDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+  /baitStations:
+    get:
+      summary: Get bait stations
+      operationId: getBaitStations
+      tags:
+        - Bait Stations
+      parameters:
+        - $ref: '#/components/parameters/changedSince'
+        - $ref: '#/components/parameters/changedSinceUUID'
+        - $ref: '#/components/parameters/organisation'
+        - $ref: '#/components/parameters/isRetired'
+        - in: query
+          name: project
+          description: Only return entities associated with one or more projects.
+          schema:
+            oneOf:
+              - type: array
+                items:
+                  title: Project UUID
+                  type: string
+                  format: uuid
+              - type: string
+                format: uuid
+        - in: query
+          name: line
+          description: Only return entities associated with one or more lines.
+          schema:
+            oneOf:
+              - type: array
+                items:
+                  title: Line UUID
+                  type: string
+                  format: uuid
+              - type: string
+                format: uuid
+        - name: projectNid
+          in: query
+          description: Only return entities associated with this project.
+          schema:
+            title: Project Node Id
+            type: integer
+          deprecated: true
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/baitStationDetails'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    post:
+      summary: Create bait station
+      description: Create a new bait station
+      operationId: createBaitStation
+      tags:
+        - Bait Stations
+      parameters:
+        - $ref: '#/components/parameters/appVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/baitStationCreation'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/baitStationDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '409':
+          $ref: '#/components/responses/conflict'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+  /baitStations/{baitStationUUID}:
+    parameters:
+      - name: baitStationUUID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get bait station
+      description: Get a single bait station
+      operationId: getBaitStation
+      tags:
+        - Bait Stations
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/baitStationDetails'
+        '404':
+          $ref: '#/components/responses/notFound'
+    patch:
+      summary: Update bait station
+      description: Update a single bait station
+      operationId: patchBaitStation
+      tags:
+        - Bait Stations
+      parameters:
+        - $ref: '#/components/parameters/appVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/baitStationModification'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/baitStationDetails'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+  /baitStationRecords:
+    get:
+      summary: Get bait station records
+      operationId: getBaitStationRecords
+      tags:
+        - Bait Stations
+      parameters:
+        - $ref: '#/components/parameters/changedSince'
+        - $ref: '#/components/parameters/changedBefore'
+        - $ref: '#/components/parameters/changedSinceUUID'
+        - $ref: '#/components/parameters/organisation'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+        - $ref: '#/components/parameters/sortOrder'
+        - $ref: '#/components/parameters/isRetired'
+        - in: query
+          name: project
+          description: Only return entities associated with one or more projects.
+          schema:
+            oneOf:
+              - type: array
+                items:
+                  title: Project UUID
+                  type: string
+                  format: uuid
+              - type: string
+                format: uuid
+        - in: query
+          name: line
+          description: Only return entities associated with one or more lines.
+          schema:
+            oneOf:
+              - type: array
+                items:
+                  title: Line UUID
+                  type: string
+                  format: uuid
+              - type: string
+                format: uuid
+        - in: query
+          name: species_detected
+          description: Only return entities associated with one or more species detected.
+          schema:
+            oneOf:
+              - type: array
+                items:
+                  title: Species detected
+                  type: string
+              - type: string
+        - in: query
+          name: active_ingredient
+          description: Only return entities associated with one or more active_ingredients.
+          schema:
+            oneOf:
+              - type: array
+                items:
+                  title: Active Ingredients
+                  type: string
+              - type: string
+        - in: query
+          name: target_species
+          description: Only return entities associated with one or more target species.
+          schema:
+            oneOf:
+              - type: array
+                items:
+                  title: Target species
+                  type: string
+              - type: string
+        - in: query
+          name: formulation
+          description: Only return entities associated with one or more formulations.
+          schema:
+            oneOf:
+              - type: array
+                items:
+                  title: Formulations
+                  type: string
+              - type: string
+        - in: query
+          name: sort_column
+          description: provide a field to sort by
+          schema:
+            type: string
+            enum:
+              - nid
+              - uuid
+              - created
+              - changed
+              - bait_station_name
+              - bait_station_nid
+              - bait_station_uuid
+              - date
+              - recorded_by
+              - active_ingredient
+              - target_species
+              - species_detected
+              - formulation
+              - concentration
+              - bait_remaining
+              - bait_removed
+              - bait_added
+              - notes
+              - images
+            default: changed
+        - in: query
+          name: bait_station
+          description: Only return records associated with this bait station.
+          schema:
+            title: Bait Station UUID
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    description: >-
+                      Number of available records in the whole result set (that
+                      can be paged through using limit or offset)
+                    type: number
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/baitStationRecordDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    post:
+      summary: Create bait station record
+      description: Create a new bait station record
+      operationId: createBaitStationRecord
+      tags:
+        - Bait Stations
+      parameters:
+        - $ref: '#/components/parameters/appVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/baitStationRecordCreation'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/baitStationRecordDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '409':
+          $ref: '#/components/responses/conflict'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+  /baitStationRecords/{baitStationRecordUUID}:
+    parameters:
+      - name: baitStationRecordUUID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get bait station record
+      description: Get a single bait station record
+      operationId: getBaitStationRecord
+      tags:
+        - Bait Stations
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/baitStationRecordDetails'
+        '404':
+          $ref: '#/components/responses/notFound'
+    patch:
+      summary: Update bait station record
+      description: Update a single bait station record
+      operationId: patchBaitStationRecord
+      tags:
+        - Bait Stations
+      parameters:
+        - $ref: '#/components/parameters/appVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/baitStationRecordModification'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/baitStationRecordDetails'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+  /baitStationRecords/speciesDetected:
+    get:
+      summary: Get bait station records species detected
+      operationId: getBaitStationRecordsSpeciesDetected
+      tags:
+        - Bait Stations Species Detected
+      parameters:
+        - in: query
+          name: project
+          description: Only return entities associated with one or more projects.
+          schema:
+            oneOf:
+              - type: array
+                items:
+                  title: Project UUID
+                  type: string
+                  format: uuid
+              - type: string
+                format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/baitStationRecordSpeciesDetectedDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+  /baitStationRecords/formulations:
+    get:
+      summary: Get bait station records formulations
+      operationId: getBaitStationRecordsFormulations
+      tags:
+        - Bait Stations Formulations
+      parameters:
+        - in: query
+          name: project
+          description: Only return entities associated with one or more projects.
+          schema:
+            oneOf:
+              - type: array
+                items:
+                  title: Project UUID
+                  type: string
+                  format: uuid
+              - type: string
+                format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/baitStationRecordFormulationsDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+  /baitStationRecords/activeIngredients:
+    get:
+      summary: Get bait station records active ingredients
+      operationId: getBaitStationRecordsActiveIngredients
+      tags:
+        - Bait Stations Active Ingredients
+      parameters:
+        - in: query
+          name: project
+          description: Only return entities associated with one or more projects.
+          schema:
+            oneOf:
+              - type: array
+                items:
+                  title: Project UUID
+                  type: string
+                  format: uuid
+              - type: string
+                format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: >-
+                    #/components/schemas/baitStationRecordActiveIngredientsDetails
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+  /baitStationRecords/targetSpecies:
+    get:
+      summary: Get bait station records target species
+      operationId: getBaitStationRecordsTargetSpecies
+      tags:
+        - Bait Stations Target Species
+      parameters:
+        - in: query
+          name: project
+          description: Only return entities associated with one or more projects.
+          schema:
+            oneOf:
+              - type: array
+                items:
+                  title: Project UUID
+                  type: string
+                  format: uuid
+              - type: string
+                format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/baitStationRecordTargetSpeciesDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+  /monitoringStations:
+    get:
+      summary: Get monitoring stations
+      operationId: getMonitoringStations
+      tags:
+        - Monitoring Stations
+      parameters:
+        - $ref: '#/components/parameters/changedSince'
+        - $ref: '#/components/parameters/changedSinceUUID'
+        - $ref: '#/components/parameters/organisation'
+        - $ref: '#/components/parameters/project'
+        - name: projectNid
+          in: query
+          description: Only return entities associated with this project.
+          schema:
+            title: Project Node Id
+            type: integer
+          deprecated: true
+        - $ref: '#/components/parameters/line'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/monitoringStationDetails'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    post:
+      summary: Create monitoring station
+      description: Create a new monitoring station
+      operationId: createMonitoringStation
+      tags:
+        - Monitoring Stations
+      parameters:
+        - $ref: '#/components/parameters/appVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/monitoringStationCreation'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/monitoringStationDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '409':
+          $ref: '#/components/responses/conflict'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+  /monitoringStations/{monitoringStationUUID}:
+    parameters:
+      - name: monitoringStationUUID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get monitoring station
+      description: Get a single monitoring station
+      operationId: getMonitoringStation
+      tags:
+        - Monitoring Stations
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/monitoringStationDetails'
+        '404':
+          $ref: '#/components/responses/notFound'
+    patch:
+      summary: Update monitoring station
+      description: Update a single monitoring station
+      operationId: patchMonitoringStation
+      tags:
+        - Monitoring Stations
+      parameters:
+        - $ref: '#/components/parameters/appVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/monitoringStationModification'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/monitoringStationDetails'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+  /pointsOfInterest:
+    get:
+      summary: Get points of interest
+      description: >-
+        Get points of interest, ordered from least recently changed to most
+        recently changed.
+      operationId: getPointsOfInterest
+      tags:
+        - Points of Interest
+      parameters:
+        - $ref: '#/components/parameters/changedSince'
+        - $ref: '#/components/parameters/changedSinceUUID'
+        - $ref: '#/components/parameters/organisation'
+        - $ref: '#/components/parameters/project'
+        - $ref: '#/components/parameters/line'
+        - $ref: '#/components/parameters/limit'
+        - name: projectNid
+          in: query
+          description: Only return entities associated with this project.
+          schema:
+            title: Project Node Id
+            type: integer
+          deprecated: true
+        - name: active_at
+          in: query
+          description: Only return points of interest active at this date
+          schema:
+            title: Active Date
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/pointOfInterestDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    post:
+      summary: Create point of interest
+      description: Create a new point of interest
+      operationId: createPointOfInterest
+      tags:
+        - Points of Interest
+      parameters:
+        - $ref: '#/components/parameters/appVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/pointOfInterestCreation'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pointOfInterestDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '409':
+          $ref: '#/components/responses/conflict'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: array
+  /pointsOfInterest/{pointOfInterestUUID}:
+    parameters:
+      - name: pointOfInterestUUID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get point of interest
+      description: Get a single point of interest
+      operationId: getPointOfInterest
+      tags:
+        - Points of Interest
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pointOfInterestDetails'
+        '404':
+          $ref: '#/components/responses/notFound'
+    patch:
+      summary: Update point of interest
+      description: Update a single point of interest
+      operationId: patchPointOfInterest
+      tags:
+        - Points of Interest
+      parameters:
+        - $ref: '#/components/parameters/appVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/pointOfInterestModification'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pointOfInterestDetails'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: array
+  /pointsOfInterest/byNid/{pointOfInterestNid}:
+    parameters:
+      - name: pointOfInterestNid
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Get point of interest
+      description: Get a single point of interest by its node id
+      operationId: getPointOfInterestByNid
+      deprecated: true
+      tags:
+        - Points of Interest
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pointOfInterestDetails'
+        '404':
+          $ref: '#/components/responses/notFound'
+    patch:
+      summary: Update point of interest
+      description: Update a single point of interest by its node id
+      operationId: patchPointOfInterestByNid
+      deprecated: true
+      tags:
+        - Points of Interest
+      parameters:
+        - $ref: '#/components/parameters/appVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/pointOfInterestModification'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pointOfInterestDetails'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: array
+  /pointOfInterestRecords:
+    get:
+      summary: Get point of interest records
+      description: >-
+        Get point of interest records, ordered from least recently changed to
+        most recently changed.
+      operationId: getPointOfInterestRecords
+      tags:
+        - Points of Interest
+      parameters:
+        - $ref: '#/components/parameters/changedSince'
+        - $ref: '#/components/parameters/changedSinceUUID'
+        - $ref: '#/components/parameters/organisation'
+        - $ref: '#/components/parameters/project'
+        - $ref: '#/components/parameters/line'
+        - $ref: '#/components/parameters/limit'
+        - in: query
+          name: pointOfInterest
+          description: Only return records associated with this point of interest.
+          schema:
+            title: Point of Interest UUID
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/pointOfInterestRecordDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    post:
+      summary: Create a point of interest record
+      description: Create a new record at a point of interest
+      operationId: createPointOfInterestRecord
+      tags:
+        - Points of Interest
+      parameters:
+        - $ref: '#/components/parameters/appVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/pointOfInterestRecordCreation'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pointOfInterestRecordDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '409':
+          $ref: '#/components/responses/conflict'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: array
+  /pointOfInterestRecords/{pointOfInterestRecordUUID}:
+    parameters:
+      - name: pointOfInterestRecordUUID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get point of interest record
+      description: Get a single point of interest record
+      operationId: getPointOfInterestRecord
+      tags:
+        - Points of Interest
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pointOfInterestRecordDetails'
+        '404':
+          $ref: '#/components/responses/notFound'
+    patch:
+      summary: Update point of interest record
+      description: Update a single point of interest record
+      operationId: patchPointOfInterestRecord
+      tags:
+        - Points of Interest
+      parameters:
+        - $ref: '#/components/parameters/appVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/pointOfInterestRecordModification'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pointOfInterestRecordDetails'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: array
+  /sensorRecords:
+    get:
+      summary: Get sensor records
+      description: >-
+        Get sensor records, ordered from least recently changed to most recently
+        changed.
+      operationId: getSensorRecords
+      tags:
+        - Sensors
+      parameters:
+        - $ref: '#/components/parameters/changedSince'
+        - $ref: '#/components/parameters/changedSinceUUID'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/sensorRecordDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+    post:
+      summary: Post a sensor record
+      operationId: createSensorRecord
+      tags:
+        - Sensors
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sensorRecordCreation'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: string
+  /sensorRecords/{sensorRecordUUID}:
+    parameters:
+      - name: sensorRecordUUID
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get sensor record
+      description: Get a single sensor record
+      operationId: getSensorRecord
+      tags:
+        - Sensors
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sensorRecordDetails'
+        '404':
+          $ref: '#/components/responses/notFound'
+  /sensors:
+    get:
+      summary: Get sensors
+      operationId: getSensors
+      tags:
+        - Sensors
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/sensorDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+  /sensors/{sensorProvider}:{sensorID}:
+    parameters:
+      - name: sensorProvider
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: sensorID
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get sensor
+      operationId: getSensor
+      tags:
+        - Sensors
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sensorDetails'
+        '404':
+          $ref: '#/components/responses/notFound'
+  /users/me:
+    get:
+      summary: Get current user
+      operationId: getCurrentUser
+      tags:
+        - Users
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/userDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+  /oauth2/token:
+    post:
+      summary: Request access token
+      operationId: requestAccessToken
+      tags:
+        - Auth
+      security:
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - title: Password Grant
+                  type: object
+                  properties:
+                    grant_type:
+                      type: string
+                      enum:
+                        - password
+                    scope:
+                      type: string
+                      enum:
+                        - default
+                    username:
+                      type: string
+                    password:
+                      type: string
+                      format: password
+                    client_id:
+                      type: string
+                    client_secret:
+                      type: string
+                      format: password
+                  required:
+                    - grant_type
+                    - username
+                    - password
+                    - client_id
+                  additionalProperties: false
+                - title: Refresh Token Grant
+                  type: object
+                  properties:
+                    grant_type:
+                      type: string
+                      enum:
+                        - refresh_token
+                    scope:
+                      type: string
+                      enum:
+                        - default
+                    refresh_token:
+                      type: string
+                      format: password
+                    client_id:
+                      type: string
+                    client_secret:
+                      type: string
+                      format: password
+                  required:
+                    - grant_type
+                    - refresh_token
+                    - client_id
+                  additionalProperties: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    format: password
+                  refresh_token:
+                    type: string
+                    format: password
+                  token_type:
+                    type: string
+                    enum:
+                      - Bearer
+                  scope:
+                    type: string
+                    enum:
+                      - default
+                  expires_in:
+                    type: string
+                    format: integer
+                required:
+                  - access_token
+                  - token_type
+                  - expires_in
+                additionalProperties: false
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  error_description:
+                    type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  error_description:
+                    type: string
+  /appLogs:
+    post:
+      summary: Submit app log data
+      operationId: createAppLog
+      tags:
+        - Internal
+      security:
+        - app_log_auth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                type: string
+  /deploymentMarkers:
+    get:
+      summary: Get deployment markers by project
+      operationId: getDeploymentMarkers
+      tags:
+        - Deployment Markers
+      parameters:
+        - $ref: '#/components/parameters/changedSince'
+        - $ref: '#/components/parameters/changedSinceUUID'
+        - $ref: '#/components/parameters/limit'
+        - in: query
+          name: project
+          description: Only return entities associated with this project.
+          required: true
+          schema:
+            title: Project UUID
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/deploymentMarkerDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    post:
+      summary: Create new deployment marker under a project
+      operationId: createDeploymentMarker
+      tags:
+        - Deployment Markers
+      requestBody:
+        description: Deployment to create for a project
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/deploymentMarkerRecordCreation'
+      responses:
+        '201':
+          $ref: '#/components/responses/deploymentMarkerSuccess'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+  /deploymentMarkers/bulk:
+    post:
+      summary: Create multiple deployment markers
+      operationId: createDeploymentMarkers
+      tags:
+        - Deployment Markers
+      requestBody:
+        description: Deployments to create
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/deploymentMarkerRecordCreation'
+      responses:
+        '201':
+          $ref: '#/components/responses/deploymentMarkerBulkSuccess'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    patch:
+      summary: Update multiple deployment markers
+      operationId: updateDeploymentMarkers
+      tags:
+        - Deployment Markers
+      requestBody:
+        description: Deployments to update
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/deploymentMarkerRecordBulkModification'
+      responses:
+        '200':
+          $ref: '#/components/responses/deploymentMarkerBulkSuccess'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    delete:
+      summary: Delete multiple deployment markers
+      operationId: deleteDeploymentMarkers
+      tags:
+        - Deployment Markers
+      requestBody:
+        description: Deployments to delete
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                format: uuid
+      responses:
+        '200':
+          description: Successful bulk deletion of deployment markers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    description: Success Message
+                    type: string
+                  deployment_markers:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
+                required:
+                  - message
+                  - deployment_markers
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+  /deploymentMarkers/{deploymentMarkerUUID}:
+    get:
+      summary: Get deployment
+      operationId: getDeploymentMarker
+      tags:
+        - Deployment Markers
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/deploymentMarkerDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    patch:
+      summary: Update deployment
+      operationId: updateDeploymentMarker
+      tags:
+        - Deployment Markers
+      requestBody:
+        description: Deployment marker to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/deploymentMarkerRecordModification'
+      responses:
+        '200':
+          $ref: '#/components/responses/deploymentMarkerSuccess'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    delete:
+      summary: Delete deployment
+      operationId: deleteDeploymentMarker
+      tags:
+        - Deployment Markers
+      responses:
+        '200':
+          $ref: '#/components/responses/success'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    parameters:
+      - name: deploymentMarkerUUID
+        in: path
+        required: true
+        schema:
+          title: Deployment Marker UUID
+          type: string
+          format: uuid
+  /areas:
+    get:
+      summary: Get areas by project
+      operationId: getAreas
+      tags:
+        - Areas
+      parameters:
+        - $ref: '#/components/parameters/changedSince'
+        - $ref: '#/components/parameters/changedSinceUUID'
+        - $ref: '#/components/parameters/limit'
+        - in: query
+          name: project
+          description: Only return entities associated with this project.
+          required: true
+          schema:
+            title: Project UUID
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/areaDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    post:
+      summary: Create new area under a project
+      operationId: createArea
+      tags:
+        - Areas
+      requestBody:
+        description: Area to create for a project
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/areaRecordCreation'
+      responses:
+        '201':
+          $ref: '#/components/responses/areaSuccess'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+  /areas/{areaUUID}:
+    get:
+      summary: Get area
+      operationId: getArea
+      tags:
+        - Areas
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/areaDetails'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    patch:
+      summary: Update area
+      operationId: updateArea
+      tags:
+        - Areas
+      requestBody:
+        description: Area to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/areaRecordModification'
+      responses:
+        '200':
+          $ref: '#/components/responses/areaSuccess'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    delete:
+      summary: Delete area
+      operationId: deleteArea
+      tags:
+        - Areas
+      responses:
+        '200':
+          $ref: '#/components/responses/success'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+    parameters:
+      - name: areaUUID
+        in: path
+        required: true
+        schema:
+          title: Area UUID
+          type: string
+          format: uuid
+  /reachable:
+    head:
+      summary: Reachable?
+      description: Does nothing and returns No Content
+      operationId: reachable
+      security: []
+      parameters:
+        - name: _
+          in: query
+          description: Optional parameter for avoiding caching
+          schema: {}
+      responses:
+        '204':
+          description: Success
+components:
+  responses:
+    badRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: array
+            items: {}
+    forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            type: string
+    notFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            type: array
+    conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            type: array
+    success:
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                description: Success Message
+                type: string
+              uuid:
+                description: id affected
+                type: string
+                format: uuid
+            required:
+              - message
+              - uuid
+    lineSuccess:
+      description: Success for singleton operations on lines
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                description: Success Message
+                type: string
+              line:
+                $ref: '#/components/schemas/lineDetails'
+            required:
+              - message
+              - line
+    deploymentMarkerSuccess:
+      description: Success for singleton operations on deployment markers
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                description: Success Message
+                type: string
+              deployment_marker:
+                $ref: '#/components/schemas/deploymentMarkerDetails'
+            required:
+              - message
+              - deployment_marker
+    deploymentMarkerBulkSuccess:
+      description: Success for group operations on deployment markers
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                description: Success Message
+                type: string
+              deployment_markers:
+                type: array
+                items:
+                  $ref: '#/components/schemas/deploymentMarkerDetails'
+            required:
+              - message
+              - deployment_markers
+    areaSuccess:
+      description: Success for singleton operations on areas
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                description: Success Message
+                type: string
+              area:
+                $ref: '#/components/schemas/areaDetails'
+            required:
+              - message
+              - area
+  schemas:
+    wkt_polygon:
+      type: string
+      format: wkt
+      title: WKT Polygon
+    image:
+      title: Image
+      type: object
+      properties:
+        uuid:
+          description: The UUID for the image
+          type: string
+          format: uuid
+        url:
+          description: The resolved URL for the image
+          type: string
+          format: url
+    user:
+      title: User
+      type: object
+      properties:
+        uuid:
+          description: The UUID for the user
+          type: string
+          format: uuid
+        username:
+          description: The resolved username for the user
+          type: string
+      required:
+        - uuid
+      additionalProperties: false
+    originating_system:
+      title: Originating System
+      description: >-
+        Originating system of entity, if it was created with the commit
+        mechanism
+      anyOf:
+        - type: string
+        - type: 'null'
+    commitId:
+      title: Commit ID
+      type: string
+    date:
+      oneOf:
+        - title: ISO String
+          description: An ISO formatted date
+          type: string
+          format: date-time
+        - title: ISO String
+          description: An ISO formatted date
+          type: object
+          properties:
+            format:
+              type: string
+              enum:
+                - iso
+            value:
+              type: string
+              format: date-time
+          required:
+            - format
+            - value
+        - title: Seconds since Epoch
+          description: A date in seconds since 1 January 1970 00:00:00 UTC
+          type: object
+          properties:
+            format:
+              type: string
+              enum:
+                - seconds
+            value:
+              type: number
+          required:
+            - format
+            - value
+    baseOrganisation:
+      title: Organisation
+      description: An organisation
+      type: object
+      properties:
+        uuid:
+          title: Organisation UUID
+          type: string
+          format: uuid
+        name:
+          title: Organisation Name
+          type: string
+        summary:
+          title: Summary
+          type: string
+        description:
+          title: Description
+          type: string
+        meta:
+          title: Metadata
+          type: object
+          properties:
+            created:
+              description: Date of creation in Trap.NZ
+              type: string
+              format: date-time
+            changed:
+              description: Date of last change in Trap.NZ
+              type: string
+              format: date-time
+            owner:
+              allOf:
+                - description: User who owns the item in Trap.NZ
+                - $ref: '#/components/schemas/user'
+            nid:
+              description: The internal node ID
+              type: integer
+              deprecated: true
+            originating_system:
+              $ref: '#/components/schemas/originating_system'
+          required:
+            - created
+            - changed
+            - owner
+    organisationDetails:
+      allOf:
+        - type: object
+          title: Organisation Details
+          properties:
+            uuid: {}
+            name: {}
+            summary: {}
+            description: {}
+            meta: {}
+          required:
+            - uuid
+            - name
+            - meta
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseOrganisation'
+    baseProject:
+      title: Project
+      description: A project
+      type: object
+      properties:
+        uuid:
+          title: Project UUID
+          type: string
+          format: uuid
+        name:
+          title: Project Name
+          type: string
+        organisations:
+          title: Organisations
+          type: array
+          items:
+            type: object
+            properties:
+              uuid:
+                title: Organisation
+                description: The organisation which this project belongs to
+                type: string
+                format: uuid
+            required:
+              - uuid
+        location:
+          $ref: '#/components/schemas/wkt_polygon'
+        tags:
+          title: Tags
+          description: 'List of tags (TODO: on Trap.NZ these are ''Project Type'')'
+          type: array
+          items:
+            title: Tag
+            type: object
+            properties:
+              uuid:
+                description: The UUID for the tag
+                type: string
+                format: uuid
+            required:
+              - uuid
+        is_listed:
+          title: Listed?
+          description: Whether the project is listed publicly
+          type: boolean
+        share_summary_data:
+          title: Share Summary Data?
+          description: Whether summary data can be shared publicly
+          type: boolean
+        curated:
+          title: Curated?
+          description: >-
+            Whether the project should be included in public maps, if
+            `is_listed` is true. This is used by admins to curate projects with
+            unsuitable boundaries from public maps.
+          type: boolean
+        contact:
+          title: Contact Details
+          type: string
+        contact_organisation:
+          title: Organisation Name
+          type: string
+        description:
+          title: Description
+          type: string
+        websites:
+          title: Websites
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+                title: URL
+              title:
+                type: string
+                title: Title
+            required:
+              - url
+              - title
+        enabled_features:
+          title: Enabled Features
+          type: object
+          properties:
+            traps:
+              title: Traps?
+              type: boolean
+            bait_stations:
+              title: Bait Stations?
+              type: boolean
+            monitoring_stations:
+              title: Monitoring Stations?
+              type: boolean
+            points_of_interest:
+              title: Points of Interest?
+              type: boolean
+        my_access:
+          title: My Project Access
+          type: object
+          required:
+            - trapper
+            - advanced_trapper
+            - manager
+            - administrator
+            - membership_state
+            - organisations_access
+          additionalProperties: false
+          properties:
+            trapper:
+              title: Is Trapper?
+              type: boolean
+            advanced_trapper:
+              title: Is Advanced Trapper?
+              type: boolean
+            manager:
+              title: Is Manager?
+              type: boolean
+            administrator:
+              title: Is Administrator?
+              type: boolean
+            membership_state:
+              title: My Membership State
+              enum:
+                - active
+                - pending
+                - blocked
+                - null
+            organisations_access:
+              title: My Organisations Access
+              type: array
+              items:
+                type: object
+                required:
+                  - organisation_uuid
+                  - member
+                  - administrator
+                  - membership_state
+                additionalProperties: false
+                properties:
+                  organisation_uuid:
+                    title: Organisation UUID
+                    type: string
+                    format: uuid
+                  member:
+                    title: Is Member?
+                    type: boolean
+                  administrator:
+                    title: Is Administrator?
+                    type: boolean
+                  membership_state:
+                    title: My Membership State
+                    type: string
+                    enum:
+                      - active
+                      - pending
+                      - blocked
+        meta:
+          title: Metadata
+          type: object
+          properties:
+            created:
+              description: Date of creation in Trap.NZ
+              type: string
+              format: date-time
+            changed:
+              description: Date of last change in Trap.NZ
+              type: string
+              format: date-time
+            owner:
+              allOf:
+                - description: User who owns the item in Trap.NZ
+                - $ref: '#/components/schemas/user'
+            nid:
+              description: The internal node ID
+              type: integer
+              deprecated: true
+            originating_system:
+              $ref: '#/components/schemas/originating_system'
+          required:
+            - created
+            - changed
+            - owner
+    verboseProject:
+      allOf:
+        - type: object
+          properties:
+            tags:
+              type: array
+              items:
+                type: object
+                properties:
+                  tid:
+                    description: The tag ID for the tag
+                    type: integer
+                    deprecated: true
+                  name:
+                    description: The resolved name for the tag
+                    type: string
+            organisations:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    description: The resolved name for the organisation
+                    type: string
+        - $ref: '#/components/schemas/baseProject'
+    projectDetails:
+      allOf:
+        - type: object
+          title: Project Details
+          properties:
+            uuid: {}
+            name: {}
+            location: {}
+            tags: {}
+            is_listed: {}
+            share_summary_data: {}
+            curated: {}
+            organisations: {}
+            contact: {}
+            contact_organisation: {}
+            description: {}
+            websites: {}
+            enabled_features: {}
+            my_access: {}
+            meta: {}
+          required:
+            - uuid
+            - name
+            - location
+            - is_listed
+            - share_summary_data
+            - curated
+            - enabled_features
+            - my_access
+            - meta
+          additionalProperties: false
+        - $ref: '#/components/schemas/verboseProject'
+    baseLine:
+      title: Line
+      description: A line
+      type: object
+      properties:
+        uuid:
+          title: Line UUID
+          type: string
+          format: uuid
+        name:
+          title: Line Name
+          type: string
+        project:
+          title: Project
+          description: The project this line belongs to
+          type: object
+          properties:
+            uuid:
+              description: The UUID for the project
+              type: string
+              format: uuid
+            nid:
+              description: The node ID for the project
+              type: integer
+              deprecated: true
+        type:
+          title: Line type
+          type: object
+          properties:
+            trap:
+              title: Trap line
+              type: boolean
+            monitoring_station:
+              title: Monitoring station line
+              type: boolean
+            bait_station:
+              title: Bait station line
+              type: boolean
+        colour:
+          title: Colour
+          description: The colour to render the line
+          type: string
+          pattern: ^#[0-9A-Fa-f]{6}$
+        location:
+          title: Location
+          description: The location of this line
+          type: string
+          format: wkt
+        meta:
+          title: Metadata
+          type: object
+          properties:
+            created:
+              description: Date of creation in Trap.NZ
+              type: string
+              format: date-time
+            changed:
+              description: Date of last change in Trap.NZ
+              type: string
+              format: date-time
+            owner:
+              allOf:
+                - description: User who owns the item in Trap.NZ
+                - $ref: '#/components/schemas/user'
+            nid:
+              description: The internal node ID
+              type: integer
+              deprecated: true
+            originating_system:
+              $ref: '#/components/schemas/originating_system'
+          required:
+            - created
+            - changed
+            - owner
+    verboseLine:
+      allOf:
+        - type: object
+          properties:
+            project:
+              type: object
+              properties:
+                name:
+                  description: The resolved name for the project
+                  type: string
+        - $ref: '#/components/schemas/baseLine'
+    lineDetails:
+      allOf:
+        - type: object
+          title: Line Details
+          properties:
+            uuid: {}
+            name: {}
+            project: {}
+            type: {}
+            colour: {}
+            location: {}
+            meta: {}
+          required:
+            - uuid
+            - name
+            - project
+            - type
+            - meta
+          additionalProperties: false
+        - $ref: '#/components/schemas/verboseLine'
+    lineRecordCreation:
+      allOf:
+        - type: object
+          title: Line Creatable
+          properties:
+            name: {}
+            project: {}
+            type: {}
+            colour: {}
+            location: {}
+          required:
+            - name
+            - project
+            - type
+            - location
+          additionalProperties: false
+        - $ref: '#/components/schemas/verboseLine'
+    lineRecordModification:
+      allOf:
+        - type: object
+          title: Line Updatable
+          properties:
+            name: {}
+            type: {}
+            colour: {}
+            location: {}
+          additionalProperties: false
+        - $ref: '#/components/schemas/verboseLine'
+    baseTrap:
+      title: Trap
+      description: An installed trap
+      type: object
+      properties:
+        uuid:
+          title: Trap UUID
+          type: string
+          format: uuid
+        name:
+          title: Trap Number / Code
+          type: string
+        tags:
+          title: Tags
+          type: array
+          items:
+            title: Tag
+            type: string
+        date_installed:
+          title: Date Installed
+          description: The date of installation
+          type: string
+          format: date-time
+        installed_by:
+          title: Installed By
+          description: The name of the installer
+          type: string
+        device_model:
+          title: Device model
+          description: The type of this trap
+          type: object
+          properties:
+            uuid:
+              description: The UUID for the trap type
+              type: string
+              format: uuid
+            name:
+              description: The resolved name for the trap type
+              type: string
+            subtype:
+              description: A free-text field describing the subtype of the trap
+              type: string
+          required:
+            - uuid
+          additionalProperties: false
+        sensor:
+          description: The sensor of this trap (TODO)
+          type: object
+        line:
+          title: Line
+          description: The line this trap belongs to
+          type: object
+          properties:
+            uuid:
+              description: The UUID for the line
+              type: string
+              format: uuid
+            name:
+              description: The resolved name for the line
+              type: string
+          required:
+            - uuid
+          additionalProperties: false
+        project:
+          title: Project
+          description: The project this trap belongs to
+          type: object
+          properties:
+            uuid:
+              description: The UUID for the project
+              type: string
+              format: uuid
+            name:
+              description: The resolved name for the project
+              type: string
+          required:
+            - uuid
+          additionalProperties: false
+        location:
+          title: Location
+          description: The location of this trap
+          type: string
+          format: wkt
+        weight:
+          title: Weight
+          description: The sort weight for this trap within its line
+          type: integer
+        images:
+          title: Images
+          type: array
+          items:
+            $ref: '#/components/schemas/image'
+        notes:
+          title: Notes
+          type: string
+        is_retired:
+          title: Is retired?
+          type: boolean
+        contact:
+          title: Contact details
+          type: object
+          properties:
+            name:
+              title: Name
+              type: string
+            address:
+              title: Address
+              type: string
+            email:
+              title: Email address
+              type: string
+            phone:
+              title: Phone number
+              type: string
+          additionalProperties: false
+        meta:
+          title: Metadata
+          type: object
+          properties:
+            created:
+              description: Date of creation in Trap.NZ
+              type: string
+              format: date-time
+            changed:
+              description: Date of last change in Trap.NZ
+              type: string
+              format: date-time
+            owner:
+              allOf:
+                - description: User who owns the item in Trap.NZ
+                - $ref: '#/components/schemas/user'
+            supplementary:
+              description: Information if this trap is supplementary to another trap
+              type: object
+              properties:
+                parent:
+                  title: Trap UUID
+                  type: string
+                  format: uuid
+            originating_system:
+              $ref: '#/components/schemas/originating_system'
+          required:
+            - created
+            - changed
+            - owner
+          additionalProperties: false
+    trapDetails:
+      allOf:
+        - type: object
+          properties:
+            uuid: {}
+            name: {}
+            tags: {}
+            date_installed: {}
+            installed_by: {}
+            device_model:
+              type: object
+              properties:
+                uuid: {}
+                name: {}
+              required:
+                - uuid
+                - name
+            sensor: {}
+            line:
+              type: object
+              properties:
+                uuid: {}
+                name: {}
+              required:
+                - uuid
+                - name
+            project:
+              type: object
+              properties:
+                uuid: {}
+                name: {}
+              required:
+                - uuid
+                - name
+            location: {}
+            weight: {}
+            images: {}
+            notes: {}
+            is_retired: {}
+            contact: {}
+            meta: {}
+          required:
+            - uuid
+            - name
+            - device_model
+            - project
+            - location
+            - is_retired
+            - meta
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseTrap'
+    trapCreation:
+      allOf:
+        - type: object
+          properties:
+            name: {}
+            tags: {}
+            date_installed: {}
+            installed_by: {}
+            device_model:
+              type: object
+              properties:
+                uuid: {}
+              required:
+                - uuid
+              additionalProperties: false
+            line: {}
+            project: {}
+            location: {}
+            notes: {}
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  uuid:
+                    type: string
+                required:
+                  - uuid
+                additionalProperties: false
+            is_retired: {}
+            sensor: {}
+            contact: {}
+            weight: {}
+            commit_id:
+              $ref: '#/components/schemas/commitId'
+          required:
+            - name
+            - date_installed
+            - device_model
+            - project
+            - location
+            - is_retired
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseTrap'
+    species:
+      title: Species
+      type: object
+      properties:
+        uuid:
+          description: The UUID for the species
+          type: string
+          format: uuid
+        name:
+          description: The resolved name for the species
+          type: string
+      required:
+        - uuid
+      additionalProperties: false
+    lure:
+      title: Lure
+      type: object
+      properties:
+        uuid:
+          description: The UUID for the lure
+          type: string
+          format: uuid
+        name:
+          description: The resolved name for the lure
+          type: string
+      required:
+        - uuid
+      additionalProperties: false
+    trap_status:
+      title: Trap Status
+      type: object
+      properties:
+        uuid:
+          description: The UUID for the trap status
+          type: string
+          format: uuid
+        name:
+          description: The resolved name for the trap status
+          type: string
+      required:
+        - uuid
+      additionalProperties: false
+    baseRecord:
+      title: Record
+      description: A record against a trap
+      type: object
+      properties:
+        uuid:
+          title: Record UUID
+          type: string
+          format: uuid
+        date:
+          title: Date of record
+          type: string
+          format: date-time
+        recorded_by:
+          title: Recorded By
+          description: The name of the recorder
+          type: string
+        trap:
+          title: Trap
+          description: The trap this record belongs to
+          type: object
+          properties:
+            uuid:
+              description: The UUID for the trap
+              type: string
+              format: uuid
+            name:
+              description: The resolved name for the trap
+              type: string
+          required:
+            - uuid
+          additionalProperties: false
+        catch:
+          title: Catch
+          description: The catch, if caught
+          type: object
+          properties:
+            species:
+              $ref: '#/components/schemas/species'
+            sex:
+              title: Sex
+              description: Sex, if known
+              type: string
+              enum:
+                - Male
+                - Female
+            maturity:
+              title: Maturity
+              description: Maturity, if known
+              type: string
+              enum:
+                - Adult
+                - Juvenile
+          required:
+            - species
+          additionalProperties: false
+        relure:
+          title: Relure
+          description: The lures added, if relured
+          type: array
+          items:
+            $ref: '#/components/schemas/lure'
+        status:
+          $ref: '#/components/schemas/trap_status'
+        condition:
+          title: Condition
+          type: string
+          enum:
+            - OK
+            - Needs maintenance
+            - Repaired
+            - Regassed
+            - Relured
+            - Battery charge
+        strikes:
+          title: Strikes
+          description: The number of strikes
+          type: integer
+          minimum: 0
+        images:
+          title: Images
+          type: array
+          items:
+            $ref: '#/components/schemas/image'
+        notes:
+          title: Notes
+          type: string
+        meta:
+          title: Metadata
+          type: object
+          properties:
+            created:
+              description: Date of creation in Trap.NZ
+              type: string
+              format: date-time
+            changed:
+              description: Date of last change in Trap.NZ
+              type: string
+              format: date-time
+            owner:
+              allOf:
+                - description: User who owns the item in Trap.NZ
+                - $ref: '#/components/schemas/user'
+            originating_system:
+              $ref: '#/components/schemas/originating_system'
+          required:
+            - created
+            - changed
+            - owner
+          additionalProperties: false
+    recordDetails:
+      allOf:
+        - type: object
+          properties:
+            uuid: {}
+            date: {}
+            recorded_by: {}
+            trap:
+              type: object
+              properties:
+                uuid: {}
+                name: {}
+              required:
+                - uuid
+                - name
+            catch: {}
+            relure:
+              type: array
+              items:
+                type: object
+                properties:
+                  uuid: {}
+                  name: {}
+                required:
+                  - uuid
+                  - name
+            status:
+              type: object
+              properties:
+                uuid: {}
+                name: {}
+              required:
+                - uuid
+                - name
+            condition: {}
+            strikes: {}
+            images: {}
+            notes: {}
+            meta: {}
+          required:
+            - uuid
+            - date
+            - recorded_by
+            - trap
+            - status
+            - condition
+            - strikes
+            - meta
+        - $ref: '#/components/schemas/baseRecord'
+    Point:
+      $schema: http://json-schema.org/draft-07/schema#
+      $id: https://geojson.org/schema/Point.json
+      title: GeoJSON Point
+      type: object
+      required:
+        - type
+        - coordinates
+      properties:
+        type:
+          type: string
+          enum:
+            - Point
+        coordinates:
+          type: array
+          minItems: 2
+          items:
+            type: number
+        bbox:
+          type: array
+          minItems: 4
+          items:
+            type: number
+    baseSensorRecord:
+      title: Sensor record
+      description: A sensor record for an installation
+      type: object
+      properties:
+        uuid:
+          title: Sensor record UUID
+          type: string
+          format: uuid
+        user_uuid:
+          title: User UUID
+          description: Reference to the trap.nz user ID of the authenticated account
+          type: string
+          format: uuid
+        provider:
+          title: Sensor provider
+          description: >-
+            The ID of the sensor provider associated with the authenticated
+            account
+          type: string
+        sensor_id:
+          title: Sensor ID
+          description: The ID of the sensor (unique per sensor provider)
+          type: string
+        date:
+          title: Date of record
+          description: The date and time of the sensor event
+        submissionDate:
+          title: Date of submission
+          description: Date at which the record was submitted to Trap.NZ
+        event:
+          title: Event
+          description: The type of event for this record
+          type: string
+          enum:
+            - Sprung
+            - Set
+            - Vibration
+            - Heartbeat
+            - Baitlevel
+        status:
+          title: Status
+          description: The status of the device
+          type: string
+          enum:
+            - Sprung
+            - Set
+            - Baitlevel
+        network:
+          title: Network
+          description: The name or ID of the network the device is connected to
+          type: string
+        gateway:
+          title: Gateway
+          description: IP address of the network gateway the device is connected to
+          type: string
+        rssi:
+          title: RSSI
+          description: Wireless network Received Signal Strength Indicator
+          type: integer
+        sequence:
+          title: Sequence
+          description: A total count of transmissions sent according to the device
+          type: integer
+        counter:
+          title: Counter
+          description: >-
+            A device-specific counter such as the number of times a trigger has
+            sprung
+          type: integer
+        battery_voltage:
+          title: Battery voltage
+          description: The current measured battery voltage
+          type: number
+        snr:
+          title: Signal to noise ratio
+          description: (decibels)
+          type: number
+        timeout:
+          title: Timeout
+          description: >-
+            Heartbeat interval (seconds). Alternatively -1 (no timeout) or 0:
+            (expired)
+          type: integer
+        bait_level:
+          title: Bait level
+          description: The measured level of the remaining bait
+          type: number
+        temperature:
+          title: Temperature
+          description: Degrees Celsius
+          type: number
+        humidity:
+          title: Humidity
+          description: Relative humidity (%)
+          type: number
+        tilt_angle:
+          title: Tilt angle
+          description: Single-axis gyroscopic tilt (degrees)
+          type: number
+        bump:
+          title: Bump detection
+          description: Bump, shock or rapid accelerometer detection
+          type: boolean
+        pir_count:
+          title: PIR count
+          description: Count of infrared motion detections (since last record)
+          type: integer
+        extra:
+          title: Extra info
+          description: Extra data, info or debugging not captured by the official fields
+          type: string
+          maxLength: 255
+    baseBaitStationRecord:
+      title: Bait Station Record
+      description: A bait station record
+      type: object
+      properties:
+        uuid:
+          title: Bait Station Record UUID
+          type: string
+          format: uuid
+        bait_station:
+          title: Bait Station
+          description: The bait station this record belongs to
+          type: object
+          properties:
+            uuid:
+              description: The UUID for the bait station
+              type: string
+              format: uuid
+            name:
+              description: The resolved name for the bait station
+              type: string
+          required:
+            - uuid
+          additionalProperties: false
+        date:
+          title: Date of record
+          type: string
+          format: date-time
+        recorded_by:
+          title: Recorded By
+          description: The name of the recorder
+          type: string
+        active_ingredient:
+          title: Active Ingredient
+          type: string
+        target_species:
+          title: Target Species
+          type: string
+        species_detected:
+          type: array
+          items:
+            title: Species
+            type: object
+            properties:
+              tid:
+                title: Species term ID
+                type: number
+                deprecated: true
+              uuid:
+                title: Species UUID
+                type: string
+                format: uuid
+              name:
+                title: Species name
+                type: string
+            additionalProperties: false
+        formulation:
+          title: Formulation
+          type: string
+        concentration:
+          title: Concentration
+          type: number
+        bait_remaining:
+          title: Bait Remaining (kg)
+          type: number
+        bait_removed:
+          title: Bait Removed (kg)
+          type: number
+        bait_added:
+          title: Bait Added (kg)
+          type: number
+        notes:
+          title: Notes
+          type: string
+        images:
+          title: Images
+          type: array
+          items:
+            $ref: '#/components/schemas/image'
+        meta:
+          title: Metadata
+          type: object
+          properties:
+            created:
+              description: Date of creation in Trap.NZ
+              type: string
+              format: date-time
+            changed:
+              description: Date of last change in Trap.NZ
+              type: string
+              format: date-time
+            owner:
+              allOf:
+                - description: User who owns the item in Trap.NZ
+                - $ref: '#/components/schemas/user'
+            originating_system:
+              $ref: '#/components/schemas/originating_system'
+          required:
+            - created
+            - changed
+            - owner
+          additionalProperties: false
+    baseBaitStation:
+      title: Bait Station
+      description: A bait station
+      type: object
+      properties:
+        uuid:
+          title: Bait Station UUID
+          type: string
+          format: uuid
+        name:
+          title: Name
+          type: string
+        tags:
+          title: Tags
+          type: array
+          items:
+            type: object
+            properties:
+              uuid:
+                description: The UUID for the tag
+                type: string
+                format: uuid
+            required:
+              - uuid
+        date_installed:
+          title: Date Installed
+          description: The date of installation
+          type: string
+          format: date-time
+        installed_by:
+          title: Installed By
+          description: The name of the installer
+          type: string
+        device_model:
+          title: Device model
+          description: The type of this bait station
+          type: object
+          properties:
+            tid:
+              description: The term ID for the bait stationt type
+              type: integer
+              deprecated: true
+            uuid:
+              description: The UUID for the bait station type
+              type: string
+              format: uuid
+            name:
+              description: The resolved name for the bait station type
+              type: string
+            subtype:
+              description: A free-text field describing the subtype of the bait station
+              type: string
+          additionalProperties: false
+        line:
+          title: Line
+          description: The line this bait station belongs to
+          type: object
+          properties:
+            uuid:
+              description: The UUID for the line
+              type: string
+              format: uuid
+            name:
+              description: The resolved name for the line
+              type: string
+          required:
+            - uuid
+          additionalProperties: false
+        project:
+          title: Project
+          description: The project this bait station belongs to
+          type: object
+          properties:
+            uuid:
+              description: The UUID for the project
+              type: string
+              format: uuid
+            name:
+              description: The resolved name for the project
+              type: string
+          required:
+            - uuid
+          additionalProperties: false
+        location:
+          title: Location
+          description: The location of this bait station, as GeoJSON
+          $ref: '#/components/schemas/Point'
+        notes:
+          title: Notes
+          type: string
+        images:
+          title: Images
+          type: array
+          items:
+            $ref: '#/components/schemas/image'
+        is_retired:
+          title: Is retired?
+          type: boolean
+        sensor:
+          title: Sensor
+          type: object
+          properties:
+            height:
+              title: Station Height
+              type: integer
+            full_level:
+              title: Station Full Level
+              type: integer
+            provider:
+              title: Sensor Provider
+              type: string
+            id:
+              title: Sensor ID
+              type: string
+            send_metadata:
+              title: Send sensor metadata?
+              description: Whether to send installation metadata to sensor provider
+              type: boolean
+            last_record:
+              title: Last Sensor Record
+              description: >-
+                The last sensor record associated with this bait station, by
+                record date (not system date)
+              allOf:
+                - type: object
+                  properties:
+                    uuid: {}
+                    date: {}
+                    event: {}
+                    status: {}
+                    timeout: {}
+                    bait_level: {}
+                  required:
+                    - uuid
+                    - date
+                    - event
+                  additionalProperties: false
+                - $ref: '#/components/schemas/baseSensorRecord'
+          required:
+            - provider
+            - id
+            - send_metadata
+          additionalProperties: false
+        contact:
+          title: Contact details
+          type: object
+          properties:
+            name:
+              title: Name
+              type: string
+            address:
+              title: Address
+              type: string
+            email:
+              title: Email address
+              type: string
+            phone:
+              title: Phone number
+              type: string
+          additionalProperties: false
+        weight:
+          title: Weight
+          description: The sort weight for this bait station within its line
+          type: integer
+        last_record:
+          title: Last Record
+          description: >-
+            The last record associated with this bait station, by record date
+            (not system date)
+          allOf:
+            - type: object
+              properties:
+                uuid: {}
+                date: {}
+                bait_remaining: {}
+                bait_removed: {}
+                bait_added: {}
+              required:
+                - uuid
+                - date
+                - bait_remaining
+              additionalProperties: false
+            - $ref: '#/components/schemas/baseBaitStationRecord'
+        meta:
+          title: Metadata
+          type: object
+          properties:
+            created:
+              description: Date of creation in Trap.NZ
+              type: string
+              format: date-time
+            changed:
+              description: Date of last change in Trap.NZ
+              type: string
+              format: date-time
+            can_edit:
+              description: Whether the requesting user can edit this bait station
+              type: boolean
+            owner:
+              allOf:
+                - description: User who owns the item in Trap.NZ
+                - $ref: '#/components/schemas/user'
+            originating_system:
+              $ref: '#/components/schemas/originating_system'
+          required:
+            - created
+            - changed
+            - can_edit
+            - owner
+          additionalProperties: false
+    baitStationDetails:
+      allOf:
+        - type: object
+          properties:
+            uuid: {}
+            name: {}
+            tags:
+              type: array
+              items:
+                type: object
+                properties:
+                  tid: {}
+                  uuid: {}
+                  name:
+                    description: The resolved name for the tag
+                    type: string
+                required:
+                  - tid
+                  - uuid
+                  - name
+                additionalProperties: false
+            date_installed: {}
+            installed_by: {}
+            device_model:
+              type: object
+              properties:
+                tid: {}
+                uuid: {}
+                name: {}
+              required:
+                - tid
+                - uuid
+                - name
+            line:
+              type: object
+              properties:
+                uuid: {}
+                name: {}
+              required:
+                - uuid
+                - name
+            project:
+              type: object
+              properties:
+                uuid: {}
+                name: {}
+              required:
+                - uuid
+                - name
+            location: {}
+            notes: {}
+            images: {}
+            is_retired: {}
+            sensor: {}
+            contact: {}
+            weight: {}
+            last_record: {}
+            meta: {}
+          required:
+            - uuid
+            - name
+            - device_model
+            - project
+            - location
+            - is_retired
+            - meta
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseBaitStation'
+    baitStationCreation:
+      allOf:
+        - type: object
+          properties:
+            name: {}
+            tags: {}
+            date_installed: {}
+            installed_by: {}
+            device_model:
+              oneOf:
+                - type: object
+                  properties:
+                    tid: {}
+                  required:
+                    - tid
+                  additionalProperties: false
+                - type: object
+                  properties:
+                    uuid: {}
+                  required:
+                    - uuid
+                  additionalProperties: false
+            line: {}
+            project: {}
+            location: {}
+            notes: {}
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  uuid:
+                    type: string
+                required:
+                  - uuid
+                additionalProperties: false
+            is_retired: {}
+            sensor: {}
+            contact: {}
+            weight: {}
+            commit_id:
+              $ref: '#/components/schemas/commitId'
+          required:
+            - name
+            - date_installed
+            - device_model
+            - project
+            - location
+            - is_retired
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseBaitStation'
+    baitStationModification:
+      allOf:
+        - type: object
+          properties:
+            name: {}
+            date_installed: {}
+            installed_by: {}
+            device_model:
+              oneOf:
+                - type: object
+                  properties:
+                    tid: {}
+                  required:
+                    - tid
+                  additionalProperties: false
+                - type: object
+                  properties:
+                    uuid: {}
+                  required:
+                    - uuid
+                  additionalProperties: false
+            line: {}
+            location: {}
+            notes: {}
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  uuid:
+                    type: string
+                required:
+                  - uuid
+                additionalProperties: false
+            is_retired: {}
+            sensor: {}
+            contact: {}
+            weight: {}
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseBaitStation'
+    baitStationRecordDetails:
+      allOf:
+        - type: object
+          properties:
+            uuid: {}
+            bait_station:
+              type: object
+              properties:
+                uuid: {}
+                name: {}
+              required:
+                - uuid
+                - name
+            date: {}
+            recorded_by: {}
+            active_ingredient: {}
+            target_species: {}
+            species_detected:
+              type: array
+              items:
+                type: object
+                properties:
+                  tid: {}
+                  uuid: {}
+                  name: {}
+                required:
+                  - tid
+                  - uuid
+                  - name
+            formulation: {}
+            concentration: {}
+            bait_remaining: {}
+            bait_removed: {}
+            bait_added: {}
+            notes: {}
+            images: {}
+            meta: {}
+          required:
+            - uuid
+            - bait_station
+            - date
+            - active_ingredient
+            - target_species
+            - formulation
+            - concentration
+            - bait_remaining
+            - meta
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseBaitStationRecord'
+    baitStationRecordCreation:
+      allOf:
+        - type: object
+          properties:
+            bait_station:
+              type: object
+              properties:
+                uuid: {}
+              required:
+                - uuid
+              additionalProperties: false
+            date: {}
+            recorded_by: {}
+            active_ingredient: {}
+            target_species: {}
+            species_detected:
+              type: array
+              items:
+                oneOf:
+                  - type: object
+                    properties:
+                      tid: {}
+                    required:
+                      - tid
+                    additionalProperties: false
+                  - type: object
+                    properties:
+                      uuid: {}
+                    required:
+                      - uuid
+                    additionalProperties: false
+            formulation: {}
+            concentration: {}
+            bait_remaining: {}
+            bait_removed: {}
+            bait_added: {}
+            notes: {}
+            images: {}
+            commit_id:
+              $ref: '#/components/schemas/commitId'
+          required:
+            - bait_station
+            - date
+            - active_ingredient
+            - target_species
+            - formulation
+            - concentration
+            - bait_remaining
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseBaitStationRecord'
+    baitStationRecordModification:
+      allOf:
+        - type: object
+          properties:
+            date: {}
+            recorded_by: {}
+            active_ingredient: {}
+            target_species: {}
+            species_detected:
+              type: array
+              items:
+                oneOf:
+                  - type: object
+                    properties:
+                      tid: {}
+                    required:
+                      - tid
+                    additionalProperties: false
+                  - type: object
+                    properties:
+                      uuid: {}
+                    required:
+                      - uuid
+                    additionalProperties: false
+            formulation: {}
+            concentration: {}
+            bait_remaining: {}
+            bait_removed: {}
+            bait_added: {}
+            notes: {}
+            images: {}
+          required:
+            - date
+            - active_ingredient
+            - target_species
+            - formulation
+            - concentration
+            - bait_remaining
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseBaitStationRecord'
+    baseBaitStationRecordSpeciesDetected:
+      title: Bait Station Record Species Detected
+      description: A species detected in one or more bait station records
+      type: object
+      properties:
+        name:
+          title: Bait Station Record Species Detected name
+          type: string
+    baitStationRecordSpeciesDetectedDetails:
+      allOf:
+        - type: object
+          properties:
+            name: {}
+          required:
+            - name
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseBaitStationRecordSpeciesDetected'
+    baseBaitStationRecordFormulations:
+      title: Bait Station Record Formulations
+      description: Formulations in one or more bait station records
+      type: object
+      properties:
+        name:
+          title: Bait Station Record Formulations name
+          type: string
+    baitStationRecordFormulationsDetails:
+      allOf:
+        - type: object
+          properties:
+            name: {}
+          required:
+            - name
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseBaitStationRecordFormulations'
+    baseBaitStationRecordActiveIngredients:
+      title: Bait Station Record Active Ingredients
+      description: Active Ingredients in one or more bait station records
+      type: object
+      properties:
+        name:
+          title: Bait Station Record Active Ingredients name
+          type: string
+    baitStationRecordActiveIngredientsDetails:
+      allOf:
+        - type: object
+          properties:
+            name: {}
+          required:
+            - name
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseBaitStationRecordActiveIngredients'
+    baseBaitStationRecordTargetSpecies:
+      title: Bait Station Record Target Species
+      description: A target species in one or more bait station records
+      type: object
+      properties:
+        name:
+          title: Bait Station Record Target Species
+          type: string
+    baitStationRecordTargetSpeciesDetails:
+      allOf:
+        - type: object
+          properties:
+            name: {}
+          required:
+            - name
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseBaitStationRecordTargetSpecies'
+    baseMonitoringStation:
+      title: Monitoring Station
+      description: A monitoring station
+      type: object
+      properties:
+        uuid:
+          title: Monitoring Station UUID
+          type: string
+          format: uuid
+        name:
+          title: Name
+          type: string
+        tags:
+          title: Tags
+          type: array
+          items:
+            type: object
+            properties:
+              uuid:
+                description: The UUID for the tag
+                type: string
+                format: uuid
+            required:
+              - uuid
+        date_installed:
+          title: Date Installed
+          description: The date of installation
+          type: string
+          format: date-time
+        installed_by:
+          title: Installed By
+          description: The name of the installer
+          type: string
+        device_model:
+          title: Device model
+          description: The type of this monitoring station
+          type: object
+          properties:
+            tid:
+              description: The term ID for the monitoring station type
+              type: integer
+              deprecated: true
+            uuid:
+              description: The UUID for the monitoring station type
+              type: string
+              format: uuid
+            name:
+              description: The resolved name for the monitoring station type
+              type: string
+          additionalProperties: false
+        line:
+          title: Line
+          description: The line this monitoring station belongs to
+          type: object
+          properties:
+            uuid:
+              description: The UUID for the line
+              type: string
+              format: uuid
+            name:
+              description: The resolved name for the line
+              type: string
+          required:
+            - uuid
+          additionalProperties: false
+        project:
+          title: Project
+          description: The project this monitoring station belongs to
+          type: object
+          properties:
+            uuid:
+              description: The UUID for the project
+              type: string
+              format: uuid
+            name:
+              description: The resolved name for the project
+              type: string
+          required:
+            - uuid
+          additionalProperties: false
+        location:
+          title: Location
+          description: The location of this monitoring station, as GeoJSON
+          $ref: '#/components/schemas/Point'
+        notes:
+          title: Notes
+          type: string
+        images:
+          title: Images
+          type: array
+          items:
+            $ref: '#/components/schemas/image'
+        is_retired:
+          title: Is retired?
+          type: boolean
+        contact:
+          title: Contact details
+          type: object
+          properties:
+            name:
+              title: Name
+              type: string
+            address:
+              title: Address
+              type: string
+            email:
+              title: Email address
+              type: string
+            phone:
+              title: Phone number
+              type: string
+          additionalProperties: false
+        weight:
+          title: Weight
+          description: The sort weight for this monitoring station within its line
+          type: integer
+        meta:
+          title: Metadata
+          type: object
+          properties:
+            created:
+              description: Date of creation in Trap.NZ
+              type: string
+              format: date-time
+            changed:
+              description: Date of last change in Trap.NZ
+              type: string
+              format: date-time
+            can_edit:
+              description: Whether the requesting user can edit this monitoring station
+              type: boolean
+            owner:
+              allOf:
+                - description: User who owns the item in Trap.NZ
+                - $ref: '#/components/schemas/user'
+            originating_system:
+              $ref: '#/components/schemas/originating_system'
+          required:
+            - created
+            - changed
+            - can_edit
+            - owner
+          additionalProperties: false
+    monitoringStationDetails:
+      allOf:
+        - type: object
+          properties:
+            uuid: {}
+            name: {}
+            tags:
+              type: array
+              items:
+                type: object
+                properties:
+                  tid: {}
+                  uuid: {}
+                  name:
+                    description: The resolved name for the tag
+                    type: string
+                required:
+                  - tid
+                  - uuid
+                  - name
+                additionalProperties: false
+            date_installed: {}
+            installed_by: {}
+            device_model:
+              type: object
+              properties:
+                tid: {}
+                uuid: {}
+                name: {}
+              required:
+                - tid
+                - uuid
+                - name
+            line:
+              type: object
+              properties:
+                uuid: {}
+                name: {}
+              required:
+                - uuid
+                - name
+            project:
+              type: object
+              properties:
+                uuid: {}
+                name: {}
+              required:
+                - uuid
+                - name
+            location: {}
+            notes: {}
+            images: {}
+            is_retired: {}
+            contact: {}
+            weight: {}
+            last_record: {}
+            meta: {}
+          required:
+            - uuid
+            - name
+            - device_model
+            - project
+            - location
+            - is_retired
+            - meta
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseMonitoringStation'
+    monitoringStationCreation:
+      allOf:
+        - type: object
+          properties:
+            name: {}
+            tags: {}
+            date_installed: {}
+            installed_by: {}
+            device_model:
+              oneOf:
+                - type: object
+                  properties:
+                    tid: {}
+                  required:
+                    - tid
+                  additionalProperties: false
+                - type: object
+                  properties:
+                    uuid: {}
+                  required:
+                    - uuid
+                  additionalProperties: false
+            line: {}
+            project: {}
+            location: {}
+            notes: {}
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  uuid:
+                    type: string
+                required:
+                  - uuid
+                additionalProperties: false
+            is_retired: {}
+            contact: {}
+            weight: {}
+            commit_id:
+              $ref: '#/components/schemas/commitId'
+          required:
+            - name
+            - date_installed
+            - device_model
+            - project
+            - location
+            - is_retired
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseMonitoringStation'
+    monitoringStationModification:
+      allOf:
+        - type: object
+          properties:
+            name: {}
+            date_installed: {}
+            installed_by: {}
+            device_model:
+              oneOf:
+                - type: object
+                  properties:
+                    tid: {}
+                  required:
+                    - tid
+                  additionalProperties: false
+                - type: object
+                  properties:
+                    uuid: {}
+                  required:
+                    - uuid
+                  additionalProperties: false
+            line: {}
+            location: {}
+            notes: {}
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  uuid:
+                    type: string
+                required:
+                  - uuid
+                additionalProperties: false
+            is_retired: {}
+            contact: {}
+            weight: {}
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseMonitoringStation'
+    basePointOfInterest:
+      title: Point of Interest
+      description: A point of interest
+      type: object
+      properties:
+        uuid:
+          title: Point of Interest UUID
+          type: string
+          format: uuid
+        name:
+          title: Name
+          type: string
+        tags:
+          title: Tags
+          type: array
+          items:
+            title: Tag
+            type: object
+            properties:
+              uuid:
+                description: The UUID for the tag
+                type: string
+                format: uuid
+            required:
+              - uuid
+        start_date:
+          title: Start Date
+          type: string
+          format: date
+        end_date:
+          title: End Date
+          type: string
+          format: date
+        type:
+          title: POI type
+          type: object
+          properties:
+            uuid:
+              description: The UUID for the POI type
+              type: string
+              format: uuid
+            tid:
+              description: The term ID for the POI type
+              type: integer
+              deprecated: true
+        line:
+          title: Line
+          description: The line this point of interest belongs to
+          type: object
+          properties:
+            uuid:
+              description: The UUID for the line
+              type: string
+              format: uuid
+            nid:
+              description: The node ID for the line
+              type: integer
+              deprecated: true
+        project:
+          title: Project
+          description: The project this point of interest belongs to
+          type: object
+          properties:
+            uuid:
+              description: The UUID for the project
+              type: string
+              format: uuid
+            nid:
+              description: The node ID for the project
+              type: integer
+              deprecated: true
+        location:
+          title: Location
+          description: The location of this trap
+          type: string
+          format: wkt
+        colour:
+          title: Colour
+          description: The colour to render the point of interest
+          type: string
+          pattern: ^#[0-9A-Fa-f]{6}$
+        weight:
+          title: Weight
+          description: The sort weight for this point of interest within its line
+          type: integer
+        images:
+          title: Images
+          type: array
+          items:
+            title: Image
+            type: object
+            properties:
+              uuid:
+                description: The UUID for the image
+                type: string
+                format: uuid
+              fid:
+                description: The file ID for the image
+                type: integer
+                deprecated: true
+        notes:
+          title: Notes
+          type: string
+        meta:
+          title: Metadata
+          type: object
+          properties:
+            created:
+              description: Date of creation in Trap.NZ
+              type: string
+              format: date-time
+            changed:
+              description: Date of last change in Trap.NZ
+              type: string
+              format: date-time
+            owner:
+              allOf:
+                - description: User who owns the item in Trap.NZ
+                - $ref: '#/components/schemas/user'
+            nid:
+              description: The internal node ID
+              type: integer
+              deprecated: true
+            originating_system:
+              $ref: '#/components/schemas/originating_system'
+          required:
+            - created
+            - changed
+            - owner
+          additionalProperties: false
+    verbosePointOfInterest:
+      allOf:
+        - type: object
+          properties:
+            tags:
+              type: array
+              items:
+                type: object
+                properties:
+                  tid:
+                    description: The tag ID for the tag
+                    type: integer
+                    deprecated: true
+                  name:
+                    description: The resolved name for the tag
+                    type: string
+            type:
+              type: object
+              properties:
+                name:
+                  description: The resolved name for the POI type
+                  type: string
+            line:
+              type: object
+              properties:
+                name:
+                  description: The resolved name for the line
+                  type: string
+            project:
+              type: object
+              properties:
+                name:
+                  description: The resolved name for the project
+                  type: string
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  url:
+                    description: The resolved URL for the image
+                    type: string
+                    format: url
+        - $ref: '#/components/schemas/basePointOfInterest'
+    pointOfInterestDetails:
+      allOf:
+        - type: object
+          properties:
+            uuid: {}
+            name: {}
+            tags: {}
+            start_date: {}
+            end_date: {}
+            type:
+              type: object
+              properties:
+                uuid: {}
+                name: {}
+              required:
+                - uuid
+                - name
+            line:
+              type: object
+              properties:
+                uuid: {}
+                name: {}
+              required:
+                - uuid
+                - name
+            project:
+              type: object
+              properties:
+                uuid: {}
+                name: {}
+              required:
+                - uuid
+                - name
+            location: {}
+            colour: {}
+            weight: {}
+            images: {}
+            notes: {}
+            meta: {}
+          required:
+            - uuid
+            - name
+            - project
+            - location
+            - meta
+          additionalProperties: false
+        - $ref: '#/components/schemas/verbosePointOfInterest'
+    pointOfInterestCreation:
+      allOf:
+        - type: object
+          properties:
+            name: {}
+            tags: {}
+            start_date: {}
+            end_date: {}
+            type:
+              type: object
+              oneOf:
+                - properties:
+                    uuid: {}
+                  required:
+                    - uuid
+                - properties:
+                    tid: {}
+                  required:
+                    - tid
+            line:
+              type: object
+              oneOf:
+                - properties:
+                    uuid: {}
+                  required:
+                    - uuid
+                - properties:
+                    nid: {}
+                  required:
+                    - nid
+            project:
+              type: object
+              oneOf:
+                - properties:
+                    uuid: {}
+                  required:
+                    - uuid
+                - properties:
+                    nid: {}
+                  required:
+                    - nid
+            location: {}
+            colour: {}
+            weight: {}
+            images:
+              type: array
+              items:
+                type: object
+                oneOf:
+                  - properties:
+                      uuid: {}
+                    required:
+                      - uuid
+                  - properties:
+                      fid: {}
+                    required:
+                      - fid
+            notes: {}
+            commit_id:
+              $ref: '#/components/schemas/commitId'
+          required:
+            - name
+            - project
+            - location
+          additionalProperties: false
+        - $ref: '#/components/schemas/basePointOfInterest'
+    pointOfInterestModification:
+      allOf:
+        - type: object
+          properties:
+            name: {}
+            start_date: {}
+            end_date: {}
+            type: {}
+            line: {}
+            location: {}
+            colour: {}
+            weight: {}
+            images:
+              type: array
+              items:
+                type: object
+                oneOf:
+                  - properties:
+                      uuid: {}
+                    required:
+                      - uuid
+                  - properties:
+                      fid: {}
+                    required:
+                      - fid
+            notes: {}
+          additionalProperties: false
+        - $ref: '#/components/schemas/basePointOfInterest'
+    basePointOfInterestRecord:
+      title: Point of Interest Record
+      description: A record at a point of interest
+      type: object
+      properties:
+        uuid:
+          title: Point of Interest Record UUID
+          type: string
+          format: uuid
+        name:
+          title: Name
+          type: string
+        pointOfInterest:
+          title: Point of Interest
+          description: The point of interest this record belongs to
+          type: object
+          properties:
+            uuid:
+              description: The UUID for the point of interest
+              type: string
+              format: uuid
+            nid:
+              description: The node ID for the point of interest
+              type: integer
+              deprecated: true
+        tags:
+          title: Tags
+          type: array
+          items:
+            title: Tag
+            type: object
+            properties:
+              uuid:
+                description: The UUID for the tag
+                type: string
+                format: uuid
+            required:
+              - uuid
+        date:
+          title: Date
+        notes:
+          title: Notes
+          type: string
+        images:
+          title: Images
+          type: array
+          items:
+            title: Image
+            type: object
+            properties:
+              uuid:
+                description: The UUID for the image
+                type: string
+                format: uuid
+              fid:
+                description: The file ID for the image
+                type: integer
+                deprecated: true
+        meta:
+          title: Metadata
+          type: object
+          properties:
+            created:
+              description: Date of creation in Trap.NZ
+              type: string
+              format: date-time
+            changed:
+              description: Date of last change in Trap.NZ
+              type: string
+              format: date-time
+            owner:
+              allOf:
+                - description: User who owns the item in Trap.NZ
+                - $ref: '#/components/schemas/user'
+            nid:
+              description: The internal node ID
+              type: integer
+              deprecated: true
+            originating_system:
+              $ref: '#/components/schemas/originating_system'
+          required:
+            - created
+            - changed
+            - owner
+          additionalProperties: false
+    verbosePointOfInterestRecord:
+      allOf:
+        - type: object
+          properties:
+            pointOfInterest:
+              type: object
+              properties:
+                name:
+                  description: The resolved name for the point of interest
+                  type: string
+            tags:
+              type: array
+              items:
+                type: object
+                properties:
+                  tid:
+                    description: The tag ID for the tag
+                    type: integer
+                    deprecated: true
+                  name:
+                    description: The resolved name for the tag
+                    type: string
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  url:
+                    description: The resolved URL for the image
+                    type: string
+                    format: url
+        - $ref: '#/components/schemas/basePointOfInterestRecord'
+    pointOfInterestRecordDetails:
+      allOf:
+        - type: object
+          properties:
+            uuid: {}
+            name: {}
+            pointOfInterest:
+              type: object
+              properties:
+                uuid: {}
+                name: {}
+              required:
+                - uuid
+                - name
+            tags: {}
+            date:
+              type: string
+              format: date-time
+            notes: {}
+            images: {}
+            meta: {}
+          required:
+            - uuid
+            - name
+            - pointOfInterest
+            - meta
+        - $ref: '#/components/schemas/verbosePointOfInterestRecord'
+    pointOfInterestRecordCreation:
+      allOf:
+        - type: object
+          properties:
+            pointOfInterest:
+              type: object
+              oneOf:
+                - properties:
+                    uuid: {}
+                  required:
+                    - uuid
+                - properties:
+                    nid: {}
+                  required:
+                    - nid
+            tags: {}
+            date:
+              $ref: '#/components/schemas/date'
+            notes: {}
+            images:
+              type: array
+              items:
+                type: object
+                oneOf:
+                  - properties:
+                      uuid: {}
+                    required:
+                      - uuid
+                  - properties:
+                      fid: {}
+                    required:
+                      - fid
+            commit_id:
+              $ref: '#/components/schemas/commitId'
+          additionalProperties: false
+          required:
+            - pointOfInterest
+        - $ref: '#/components/schemas/basePointOfInterestRecord'
+    pointOfInterestRecordModification:
+      allOf:
+        - type: object
+          properties:
+            tags: {}
+            date:
+              $ref: '#/components/schemas/date'
+            notes: {}
+            images:
+              type: array
+              items:
+                type: object
+                oneOf:
+                  - properties:
+                      uuid: {}
+                    required:
+                      - uuid
+                  - properties:
+                      fid: {}
+                    required:
+                      - fid
+            commit_id:
+              $ref: '#/components/schemas/commitId'
+          additionalProperties: false
+        - $ref: '#/components/schemas/basePointOfInterestRecord'
+    sensorRecordDetails:
+      allOf:
+        - type: object
+          properties:
+            uuid: {}
+            user_uuid: {}
+            provider: {}
+            sensor_id: {}
+            date:
+              type: string
+              format: date-time
+            submissionDate:
+              oneOf:
+                - type: string
+                  format: date-time
+                - type: string
+                  enum:
+                    - unknown
+            event: {}
+            status: {}
+            network: {}
+            gateway: {}
+            rssi: {}
+            sequence: {}
+            counter: {}
+            battery_voltage: {}
+            snr: {}
+            timeout: {}
+            bait_level: {}
+            temperature: {}
+            humidity: {}
+            tilt_angle: {}
+            bump: {}
+            pir_count: {}
+            extra: {}
+            meta: {}
+          required:
+            - uuid
+            - user_uuid
+            - provider
+            - sensor_id
+            - date
+            - event
+            - submissionDate
+        - $ref: '#/components/schemas/baseSensorRecord'
+    sensorRecordCreation:
+      allOf:
+        - type: object
+          title: Sensor Record Creation Details
+          properties:
+            sensor_id: {}
+            date:
+              $ref: '#/components/schemas/date'
+            event: {}
+            status: {}
+            network: {}
+            gateway: {}
+            rssi: {}
+            sequence: {}
+            counter: {}
+            battery_voltage: {}
+            snr: {}
+            timeout: {}
+            bait_level: {}
+            temperature: {}
+            humidity: {}
+            tilt_angle: {}
+            bump: {}
+            pir_count: {}
+            extra: {}
+          required:
+            - sensor_id
+            - date
+            - event
+        - $ref: '#/components/schemas/baseSensorRecord'
+    line:
+      title: Line
+      description: The line this installation belongs to, if applicable
+      type: object
+      properties:
+        name:
+          description: The resolved name for the line
+          type: string
+      required:
+        - name
+      additionalProperties: false
+    project:
+      title: Project
+      description: The project this installation belongs to
+      type: object
+      properties:
+        name:
+          description: The resolved name for the project
+          type: string
+      required:
+        - name
+      additionalProperties: false
+    sensorDetails:
+      title: Sensor
+      description: A sensor
+      type: object
+      properties:
+        id:
+          title: Sensor ID
+          description: The ID of the sensor
+          type: string
+        provider:
+          title: Sensor provider
+          description: The ID of the sensor provider
+          type: string
+        installation:
+          title: Installation
+          description: The installation associated with this sensor
+          oneOf:
+            - title: Trap
+              type: object
+              properties:
+                type:
+                  title: Installation Type
+                  type: string
+                  enum:
+                    - trap
+                name:
+                  title: Trap Number / Code
+                  type: string
+                location:
+                  title: Location
+                  description: The location of this trap
+                  type: string
+                  format: wkt
+                line:
+                  $ref: '#/components/schemas/line'
+                project:
+                  $ref: '#/components/schemas/project'
+              required:
+                - type
+                - project
+                - name
+                - location
+              additionalProperties: false
+            - title: Bait Station
+              type: object
+              properties:
+                type:
+                  title: Installation Type
+                  type: string
+                  enum:
+                    - bait_station
+                name:
+                  title: Bait Station Number / Code
+                  type: string
+                location:
+                  title: Location
+                  description: The location of this bait station
+                  type: string
+                  format: wkt
+                line:
+                  $ref: '#/components/schemas/line'
+                project:
+                  $ref: '#/components/schemas/project'
+              required:
+                - type
+                - project
+                - name
+                - location
+              additionalProperties: false
+            - title: Unshared
+              type: object
+              description: >-
+                An empty object represents a sensor associated with an
+                installation with metadata not shared
+              additionalProperties: false
+            - title: Not Associated
+              type: 'null'
+              description: >-
+                A null value represents a sensor not associated with an
+                installation
+        meta:
+          title: Metadata
+          type: object
+          additionalProperties: false
+      required:
+        - id
+        - provider
+        - installation
+        - meta
+    baseUser:
+      title: User
+      description: A Trap.NZ user
+      type: object
+      properties:
+        uuid:
+          title: User UUID
+          type: string
+          format: uuid
+        username:
+          title: User Name
+          type: string
+        common_name:
+          title: User Common Name
+          type: string
+        email:
+          title: User Email
+          type: string
+          format: email
+        meta:
+          title: Metadata
+          type: object
+          properties:
+            created:
+              description: Date of creation in Trap.NZ
+              type: string
+              format: date-time
+            changed:
+              description: Date of last change in Trap.NZ
+              type: string
+              format: date-time
+            originating_system:
+              $ref: '#/components/schemas/originating_system'
+          required:
+            - created
+            - changed
+    userDetails:
+      allOf:
+        - type: object
+          title: User Details
+          properties:
+            uuid: {}
+            username: {}
+            common_name: {}
+            email: {}
+            meta: {}
+          required:
+            - uuid
+            - username
+            - email
+            - common_name
+            - meta
+          additionalProperties: false
+        - $ref: '#/components/schemas/baseUser'
+    baseDeploymentMarker:
+      title: Deployment Marker
+      description: A deployment marker
+      type: object
+      properties:
+        name:
+          title: Deployment Marker Name
+          type: string
+        planned_installation_type:
+          title: Planned Installation Type
+          type: string
+          enum:
+            - trap
+            - bait_station
+            - monitoring_station
+        planned_install_term_uuid:
+          title: Planned install term
+          description: >-
+            The term that describes the planned install detail or subtype (e.g.
+            trap type or monitoring station type).
+          type: string
+          format: uuid
+        deployment_state:
+          title: Deployment State
+          type: string
+          enum:
+            - planned
+            - in_progress
+            - approved
+            - installed
+            - declined
+        project_uuid:
+          title: Project
+          description: The project which this deployment belongs to
+          type: string
+          format: uuid
+        line_uuid:
+          title: Line
+          description: The line this deployment is associated with
+          type: string
+          format: uuid
+        installation_uuid:
+          title: Installation
+          description: Reference ID of the actual installed item
+          type: string
+          format: uuid
+        location:
+          $ref: '#/components/schemas/wkt_polygon'
+    verboseDeploymentMarker:
+      allOf:
+        - type: object
+          properties:
+            uuid:
+              title: Deployment Marker UUID
+              type: string
+              format: uuid
+            meta:
+              title: Metadata
+              type: object
+              properties:
+                created:
+                  description: Date of creation in Trap.NZ
+                  type: string
+                  format: date-time
+                changed:
+                  description: Date of last change in Trap.NZ
+                  type: string
+                  format: date-time
+                created_by:
+                  description: User who added this item to Trap.NZ
+                  type: string
+                  format: uuid
+                changed_by:
+                  description: User who last changed this item in Trap.NZ
+                  type: string
+                  format: uuid
+                originating_system:
+                  $ref: '#/components/schemas/originating_system'
+              required:
+                - created_by
+                - changed_by
+        - $ref: '#/components/schemas/baseDeploymentMarker'
+    deploymentMarkerDetails:
+      allOf:
+        - type: object
+          title: Deployment Marker Details
+          properties:
+            uuid: {}
+            name: {}
+            planned_installation_type: {}
+            planned_install_term_uuid: {}
+            deployment_state: {}
+            project_uuid: {}
+            line_uuid: {}
+            installation_uuid: {}
+            location: {}
+            meta: {}
+          required:
+            - uuid
+            - planned_installation_type
+            - planned_install_term_uuid
+            - project_uuid
+            - location
+            - deployment_state
+            - meta
+          additionalProperties: false
+        - $ref: '#/components/schemas/verboseDeploymentMarker'
+    deploymentMarkerRecordCreation:
+      allOf:
+        - type: object
+          title: Deployment Marker Creatable
+          properties:
+            name: {}
+            planned_installation_type: {}
+            planned_install_term_uuid: {}
+            deployment_state: {}
+            project_uuid: {}
+            line_uuid: {}
+            location: {}
+          required:
+            - planned_installation_type
+            - planned_install_term_uuid
+            - project_uuid
+            - location
+          additionalProperties: false
+        - $ref: '#/components/schemas/verboseDeploymentMarker'
+    deploymentMarkerRecordBulkModification:
+      allOf:
+        - type: object
+          title: Bulk Deployment Marker Updatable
+          properties:
+            name: {}
+            planned_installation_type: {}
+            planned_install_term_uuid: {}
+            deployment_state: {}
+            line_uuid: {}
+            installation_uuid: {}
+            location: {}
+            uuid: {}
+          required:
+            - uuid
+          additionalProperties: false
+        - $ref: '#/components/schemas/verboseDeploymentMarker'
+    deploymentMarkerRecordModification:
+      allOf:
+        - type: object
+          title: Deployment Marker Updatable
+          properties:
+            name: {}
+            planned_installation_type: {}
+            planned_install_term_uuid: {}
+            deployment_state: {}
+            line_uuid: {}
+            installation_uuid: {}
+            location: {}
+          additionalProperties: false
+        - $ref: '#/components/schemas/verboseDeploymentMarker'
+    baseArea:
+      title: Area
+      description: An Area
+      type: object
+      properties:
+        name:
+          title: Area Name
+          type: string
+        project_uuid:
+          title: Project
+          description: The project which this area belongs to
+          type: string
+          format: uuid
+        boundary:
+          $ref: '#/components/schemas/wkt_polygon'
+    verboseArea:
+      allOf:
+        - type: object
+          properties:
+            uuid:
+              title: Area UUID
+              type: string
+              format: uuid
+            meta:
+              title: Metadata
+              type: object
+              properties:
+                created:
+                  description: Date of creation in Trap.NZ
+                  type: string
+                  format: date-time
+                changed:
+                  description: Date of last change in Trap.NZ
+                  type: string
+                  format: date-time
+                created_by:
+                  description: User who added this item to Trap.NZ
+                  type: string
+                  format: uuid
+                changed_by:
+                  description: User who last changed this item in Trap.NZ
+                  type: string
+                  format: uuid
+                originating_system:
+                  $ref: '#/components/schemas/originating_system'
+              required:
+                - created_by
+                - changed_by
+        - $ref: '#/components/schemas/baseArea'
+    areaDetails:
+      allOf:
+        - type: object
+          title: Area Details
+          properties:
+            name: {}
+            uuid: {}
+            project_uuid: {}
+            boundary: {}
+            meta: {}
+          required:
+            - uuid
+            - project_uuid
+            - boundary
+            - meta
+          additionalProperties: false
+        - $ref: '#/components/schemas/verboseArea'
+    areaRecordCreation:
+      allOf:
+        - type: object
+          title: Area Creatable
+          properties:
+            name: {}
+            project_uuid: {}
+            boundary: {}
+          required:
+            - project_uuid
+            - boundary
+          additionalProperties: false
+        - $ref: '#/components/schemas/verboseArea'
+    areaRecordModification:
+      allOf:
+        - type: object
+          title: Area Updatable
+          properties:
+            name: {}
+            boundary: {}
+          additionalProperties: false
+        - $ref: '#/components/schemas/verboseArea'
+  parameters:
+    changedSince:
+      in: query
+      name: changed_since
+      description: Only return entities changed since this date.
+      schema:
+        type: string
+        format: date-time
+    changedSinceUUID:
+      in: query
+      name: changed_since_uuid
+      description: >-
+        Only return entities changed since this UUID, if the date is equal to
+        `changed_since`.
+      schema:
+        type: string
+        format: uuid
+    changedBefore:
+      in: query
+      name: changed_before
+      description: Only return entities changed before this date.
+      schema:
+        type: string
+        format: date-time
+    organisation:
+      in: query
+      name: organisation
+      description: Only return entities associated with this organisation.
+      schema:
+        title: Organisation UUID
+        type: string
+        format: uuid
+    project:
+      in: query
+      name: project
+      description: Only return entities associated with this project.
+      schema:
+        title: Project UUID
+        type: string
+        format: uuid
+    line:
+      in: query
+      name: line
+      description: Only return entities associated with this line.
+      schema:
+        title: Line UUID
+        type: string
+        format: uuid
+    limit:
+      in: query
+      name: limit
+      description: Only return up to this many entities. Tentatively limited to 100,000.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100000
+        default: 1000
+    offset:
+      in: query
+      name: offset
+      description: Offset the page returned by this many records
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    sortOrder:
+      in: query
+      name: sort_order
+      description: provide a sort order / direction
+      schema:
+        type: string
+        enum:
+          - asc
+          - desc
+        default: asc
+    appVersion:
+      in: header
+      name: App-Version
+      description: The app version to record along with a commit ID.
+      schema:
+        title: App Version
+        type: string
+    myMembershipState:
+      in: query
+      name: my_membership_state
+      description: The current users membership state
+      schema:
+        title: My Membership State
+        enum:
+          - active
+          - pending
+          - blocked
+          - null
+    isRetired:
+      in: query
+      name: is_retired
+      description: The entities retired state
+      schema:
+        title: Retired state
+        type: boolean
+  securitySchemes:
+    trap_auth:
+      type: oauth2
+      flows:
+        password:
+          tokenUrl: /oauth2/token
+          scopes:
+            default: Required for all operations
+    app_log_auth:
+      type: apiKey
+      name: app-log-key
+      in: header

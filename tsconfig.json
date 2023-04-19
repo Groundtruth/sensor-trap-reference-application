@@ -1,0 +1,8 @@
+{
+  "extends": ["@tsconfig/node18/tsconfig.json", "@tsconfig/strictest/tsconfig.json", "@tsconfig/esm/tsconfig.json"],
+
+  "compilerOptions": {
+    "exactOptionalPropertyTypes": false,
+    "outDir": "build"
+  }
+}
